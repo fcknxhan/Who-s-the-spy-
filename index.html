@@ -1,0 +1,1977 @@
+<!DOCTYPE html>
+<html lang="id" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Who's the Spy - Siapa Mata-matanya?</title>
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Plus Jakarta Sans & JetBrains Mono -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@500;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Phosphor Icons untuk ikon yang bersih dan tajam -->
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['"Plus Jakarta Sans"', 'sans-serif'],
+                        mono: ['"JetBrains Mono"', 'monospace'],
+                    },
+                    colors: {
+                        navy: {
+                            950: '#060913',
+                            900: '#0B1120',
+                            800: '#131C31',
+                            700: '#1E293B',
+                        },
+                        gold: {
+                            400: '#FBBF24',
+                            500: '#F59E0B',
+                            600: '#D97706',
+                        },
+                        crimson: {
+                            500: '#EF4444',
+                            600: '#DC2626',
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                        'float': 'float 3s ease-in-out infinite',
+                    },
+                    keyframes: {
+                        float: {
+                            '0%, 100%': { transform: 'translateY(0)' },
+                            '50%': { transform: 'translateY(-6px)' },
+                        }
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        /* Kustomisasi CSS untuk animasi 3D Flip Card & Efek Misteri */
+        body {
+            background-color: #060913;
+            color: #F8FAFC;
+            -webkit-tap-highlight-color: transparent;
+            overflow-x: hidden;
+        }
+
+        .bg-grid-pattern {
+            background-image: radial-gradient(rgba(255, 255, 255, 0.06) 1px, transparent 1px);
+            background-size: 24px 24px;
+        }
+
+        /* 3D Card Flip Mechanics */
+        .perspective-1000 {
+            perspective: 1000px;
+        }
+        .transform-style-3d {
+            transform-style: preserve-3d;
+            transition: transform 0.65s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+        .backface-hidden {
+            backface-visibility: hidden;
+            -webkit-backface-visibility: hidden;
+        }
+        .rotate-y-180 {
+            transform: rotateY(180deg);
+        }
+
+        /* Custom Scrollbar */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+        ::-webkit-scrollbar-track {
+            background: #0B1120;
+        }
+        ::-webkit-scrollbar-thumb {
+            background: #1E293B;
+            border-radius: 999px;
+        }
+        ::-webkit-scrollbar-thumb:hover {
+            background: #334155;
+        }
+
+        /* Transisi layar halus */
+        .screen-fade {
+            animation: fadeIn 0.35s ease-out forwards;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+    </style>
+</head>
+<body class="bg-navy-950 bg-grid-pattern min-h-screen flex flex-col justify-between selection:bg-gold-500 selection:text-navy-950">
+
+    <!-- Toast / Notifikasi Pengganti alert() -->
+    <div id="toast-container" class="fixed top-4 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-md pointer-events-none flex flex-col gap-2"></div>
+
+    <!-- Header Aplikasi -->
+    <header class="w-full border-b border-slate-800/80 bg-navy-900/80 backdrop-blur-md sticky top-0 z-30">
+        <div class="max-w-lg mx-auto px-4 py-3.5 flex items-center justify-between">
+            <div class="flex items-center gap-2.5">
+                <div class="w-9 h-9 rounded-xl bg-gradient-to-br from-gold-400 to-gold-600 flex items-center justify-center text-navy-950 shadow-lg shadow-gold-500/20">
+                    <i class="ph-fill ph-detective text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-extrabold text-base tracking-tight text-white leading-none">WHO'S THE SPY</h1>
+                    <p class="text-[11px] font-medium text-gold-400 tracking-wider uppercase mt-0.5">Edisi Detektif Indonesia</p>
+                </div>
+            </div>
+            <button onclick="openRulesModal()" class="p-2 rounded-xl bg-navy-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700/70 transition flex items-center gap-1.5 text-xs font-semibold">
+                <i class="ph ph-question text-base text-gold-400"></i>
+                <span>Aturan</span>
+            </button>
+        </div>
+    </header>
+
+    <!-- Kontainer Utama -->
+    <main class="flex-grow w-full max-w-lg mx-auto px-4 py-6 flex flex-col">
+
+        <!-- =====================================================================
+             LAYAR 1: PENGATURAN PERMAINAN (SETUP)
+             ===================================================================== -->
+        <section id="screen-setup" class="screen-fade space-y-6">
+            
+            <!-- Bagian 1: Daftar Pemain -->
+            <div class="bg-navy-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="ph-duotone ph-users-three text-gold-400 text-xl"></i>
+                        <h2 class="font-bold text-base text-white">Daftar Pemain</h2>
+                    </div>
+                    <span id="player-count-badge" class="text-xs font-bold px-2.5 py-1 rounded-full bg-navy-800 text-gold-400 border border-gold-500/30">
+                        0 Pemain (Min. 3)
+                    </span>
+                </div>
+
+                <!-- Input Tambah Pemain -->
+                <form id="add-player-form" class="flex gap-2 mb-4">
+                    <input 
+                        type="text" 
+                        id="player-name-input" 
+                        placeholder="Ketik nama pemain..." 
+                        maxlength="18"
+                        autocomplete="off"
+                        class="flex-grow bg-navy-950 border border-slate-700 focus:border-gold-400 focus:ring-1 focus:ring-gold-400 rounded-xl px-3.5 py-3 text-sm text-white placeholder-slate-500 outline-none transition"
+                    >
+                    <button 
+                        type="submit" 
+                        class="px-4 py-3 bg-gold-500 hover:bg-gold-400 active:scale-95 text-navy-950 font-bold rounded-xl transition flex items-center gap-1.5 shadow-lg shadow-gold-500/10 shrink-0"
+                    >
+                        <i class="ph-bold ph-plus text-lg"></i>
+                        <span>Tambah</span>
+                    </button>
+                </form>
+
+                <!-- List Pemain -->
+                <div id="players-list" class="flex flex-wrap gap-2 max-h-44 overflow-y-auto pr-1">
+                    <!-- Diisi secara dinamis via JS -->
+                </div>
+                <p id="empty-players-hint" class="text-xs text-slate-400 text-center py-4 bg-navy-950/50 rounded-xl border border-dashed border-slate-800">
+                    Belum ada pemain. Tambahkan minimal 3 nama pemain untuk memulai misi.
+                </p>
+            </div>
+
+            <!-- Bagian 2: Jumlah Spy & Mode Peran -->
+            <div class="bg-navy-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl space-y-5">
+                <!-- Jumlah Spy -->
+                <div class="flex items-center justify-between">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-duotone ph-mask-happy text-crimson-500 text-xl"></i>
+                            <h3 class="font-bold text-sm sm:text-base text-white">Jumlah Mata-mata (Spy)</h3>
+                        </div>
+                        <p id="spy-ratio-hint" class="text-xs text-slate-400 mt-0.5">Maksimal setengah dari jumlah pemain</p>
+                    </div>
+                    
+                    <div class="flex items-center gap-3 bg-navy-950 p-1.5 rounded-xl border border-slate-800">
+                        <button type="button" onclick="changeSpyCount(-1)" id="btn-spy-minus" class="w-9 h-9 rounded-lg bg-navy-800 hover:bg-slate-700 disabled:opacity-40 text-white font-bold flex items-center justify-center transition">
+                            <i class="ph-bold ph-minus"></i>
+                        </button>
+                        <span id="spy-count-display" class="font-mono font-bold text-lg w-6 text-center text-crimson-500">1</span>
+                        <button type="button" onclick="changeSpyCount(1)" id="btn-spy-plus" class="w-9 h-9 rounded-lg bg-navy-800 hover:bg-slate-700 disabled:opacity-40 text-white font-bold flex items-center justify-center transition">
+                            <i class="ph-bold ph-plus"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <hr class="border-slate-800">
+
+                <!-- Mode Tampilan Kartu -->
+                <div class="flex items-center justify-between gap-3">
+                    <div>
+                        <div class="flex items-center gap-2">
+                            <i class="ph-duotone ph-eye text-cyan-400 text-xl"></i>
+                            <h3 class="font-bold text-sm sm:text-base text-white">Beri Tahu Peran di Kartu</h3>
+                        </div>
+                        <p id="role-mode-desc" class="text-xs text-slate-400 mt-0.5">
+                            <span class="text-gold-400 font-semibold">Mode Klasik (Aktif):</span> Pemain hanya melihat kata, tidak tahu dirinya Spy/Warga.
+                        </p>
+                    </div>
+                    <label class="relative inline-flex items-center cursor-pointer shrink-0">
+                        <input type="checkbox" id="reveal-role-toggle" class="sr-only peer" onchange="updateRoleModeText()">
+                        <div class="w-12 h-7 bg-navy-950 border border-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[3px] after:left-[3px] after:bg-slate-400 peer-checked:after:bg-navy-950 after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-gold-500 peer-checked:border-gold-500"></div>
+                    </label>
+                </div>
+            </div>
+
+            <!-- Bagian 3: Pilih Kategori Kata -->
+            <div class="bg-navy-900/90 border border-slate-800 rounded-2xl p-4 sm:p-5 shadow-xl">
+                <div class="flex items-center gap-2 mb-3.5">
+                    <i class="ph-duotone ph-folders text-gold-400 text-xl"></i>
+                    <h2 class="font-bold text-base text-white">Pilih Kategori Kata</h2>
+                </div>
+                
+                <div id="category-grid" class="grid grid-cols-2 sm:grid-cols-2 gap-2.5">
+                    <!-- Kartu kategori dirender lewat JS -->
+                </div>
+            </div>
+
+            <!-- Tombol Mulai Permainan -->
+            <div class="pt-1 pb-4">
+                <button 
+                    id="btn-start-game"
+                    onclick="startGame()"
+                    class="w-full py-4 px-6 rounded-2xl bg-gradient-to-r from-gold-500 to-amber-500 hover:from-gold-400 hover:to-amber-400 active:scale-[0.99] text-navy-950 font-extrabold text-base tracking-wide shadow-xl shadow-gold-500/20 transition flex items-center justify-center gap-2.5"
+                >
+                    <i class="ph-fill ph-play-circle text-2xl"></i>
+                    <span>MULAI PERMAINAN</span>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =====================================================================
+             LAYAR 2: PEMBAGIAN KARTU (PASS & PLAY)
+             ===================================================================== -->
+        <section id="screen-pass" class="hidden screen-fade flex-grow flex flex-col justify-center items-center py-2">
+            
+            <!-- Indikator Progres Pemain -->
+            <div class="w-full mb-5">
+                <div class="flex justify-between items-center text-xs font-semibold text-slate-400 mb-2">
+                    <span>PEMBAGIAN KARTU RAHASIA</span>
+                    <span id="pass-progress-text" class="text-gold-400 font-mono">Pemain 1 / 4</span>
+                </div>
+                <div class="w-full h-2 bg-navy-800 rounded-full overflow-hidden">
+                    <div id="pass-progress-bar" class="h-full bg-gold-500 transition-all duration-300" style="width: 25%"></div>
+                </div>
+            </div>
+
+            <!-- Kontainer Kartu 3D -->
+            <div class="w-full perspective-1000 my-auto">
+                <div id="secret-card-inner" class="relative w-full min-h-[380px] sm:min-h-[410px] transform-style-3d">
+                    
+                    <!-- SISI DEPAN KARTU (TERTUTUP - PASS DEVICE) -->
+                    <div class="absolute inset-0 backface-hidden bg-gradient-to-b from-navy-800 to-navy-900 border-2 border-slate-700/80 rounded-3xl p-6 flex flex-col items-center justify-between text-center shadow-2xl">
+                        <div class="w-full flex justify-between items-center text-slate-500 text-xs font-mono">
+                            <span>RAHASIA NEGARA</span>
+                            <i class="ph-fill ph-lock-key text-gold-500 text-base"></i>
+                        </div>
+
+                        <div class="my-auto space-y-4">
+                            <div class="w-20 h-20 mx-auto rounded-full bg-navy-950 border-2 border-gold-500/40 flex items-center justify-center shadow-inner animate-float">
+                                <i class="ph-duotone ph-hand-pointing text-4xl text-gold-400"></i>
+                            </div>
+                            <div class="space-y-1">
+                                <p class="text-xs uppercase tracking-widest text-slate-400 font-semibold">Berikan perangkat ini kepada:</p>
+                                <h2 id="pass-player-name" class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight break-words px-2">
+                                    Nama Pemain
+                                </h2>
+                            </div>
+                            <p class="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+                                Pastikan layar tidak terlihat oleh pemain lain sebelum kamu membuka kartu ini!
+                            </p>
+                        </div>
+
+                        <button 
+                            onclick="flipCardOpen()"
+                            class="w-full py-4 px-5 rounded-2xl bg-gold-500 hover:bg-gold-400 active:scale-95 text-navy-950 font-extrabold text-base shadow-lg shadow-gold-500/20 transition flex items-center justify-center gap-2"
+                        >
+                            <i class="ph-bold ph-eye text-xl"></i>
+                            <span>Lihat Kartu Saya</span>
+                        </button>
+                    </div>
+
+                    <!-- SISI BELAKANG KARTU (TERBUKA - KATA RAHASIA) -->
+                    <div id="card-back-face" class="absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-b from-slate-800 to-navy-900 border-2 border-gold-500/60 rounded-3xl p-6 flex flex-col items-center justify-between text-center shadow-2xl">
+                        <div class="w-full flex justify-between items-center text-xs font-mono">
+                            <span id="card-back-player-label" class="text-slate-400 font-semibold">PEMAIN</span>
+                            <span id="card-back-category-badge" class="px-2.5 py-0.5 rounded-full bg-navy-950 text-gold-400 border border-slate-700">Kategori</span>
+                        </div>
+
+                        <div class="my-auto w-full space-y-4">
+                            <!-- Badge Peran (Muncul jika toggle aktif atau gaya klasik) -->
+                            <div id="role-badge-container">
+                                <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-navy-950/90 text-cyan-400 border border-cyan-500/30">
+                                    <i class="ph-fill ph-sparkle"></i> KATA RAHASIAMU
+                                </span>
+                            </div>
+
+                            <!-- Kotak Kata Rahasia -->
+                            <div class="bg-navy-950/90 border border-slate-700/80 rounded-2xl p-6 shadow-inner">
+                                <p id="secret-word-text" class="text-3xl sm:text-4xl font-extrabold text-white tracking-wide break-words">
+                                    KATA RAHASIA
+                                </p>
+                            </div>
+
+                            <p id="card-instruction-hint" class="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+                                Ingat kata ini baik-baik! Deskripsikan dengan cerdik tanpa membocorkannya secara langsung.
+                            </p>
+                        </div>
+
+                        <button 
+                            id="btn-next-player"
+                            onclick="nextPlayerCard()"
+                            class="w-full py-4 px-5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 active:scale-95 text-navy-950 font-extrabold text-base shadow-lg shadow-emerald-500/20 transition flex items-center justify-center gap-2"
+                        >
+                            <i class="ph-bold ph-eye-slash text-xl"></i>
+                            <span id="btn-next-player-text">Tutup Kartu & Lanjut</span>
+                        </button>
+                    </div>
+
+                </div>
+            </div>
+        </section>
+
+
+        <!-- =====================================================================
+             LAYAR 3: FASE DISKUSI, VOTING & PANEL WASIT
+             ===================================================================== -->
+        <section id="screen-discussion" class="hidden screen-fade space-y-5 pb-6">
+            
+            <!-- Banner Status Game & Kategori -->
+            <div class="bg-gradient-to-r from-navy-900 via-navy-800 to-navy-900 border border-slate-700/80 rounded-2xl p-4 flex items-center justify-between shadow-lg">
+                <div>
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Kategori Aktif</span>
+                    <div class="flex items-center gap-2 mt-0.5">
+                        <span id="active-category-icon" class="text-xl">⚽</span>
+                        <h2 id="active-category-name" class="font-extrabold text-lg text-white">Olahraga</h2>
+                    </div>
+                </div>
+                <div class="text-right">
+                    <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">Pemain Tersisa</span>
+                    <p id="alive-counter-text" class="font-mono font-bold text-lg text-gold-400 mt-0.5">4 / 4</p>
+                </div>
+            </div>
+
+            <!-- Tombol Utama Mulai Voting Bergilir -->
+            <button 
+                onclick="startTurnBasedVoting()"
+                class="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-crimson-600 to-rose-500 hover:from-crimson-500 hover:to-rose-400 active:scale-[0.99] text-white font-extrabold text-base tracking-wide shadow-xl shadow-crimson-600/20 transition flex items-center justify-center gap-2.5"
+            >
+                <i class="ph-fill ph-ballot text-2xl"></i>
+                <span>MULAI VOTING BERGILIR</span>
+            </button>
+
+            <!-- Timer Diskusi -->
+            <div class="bg-navy-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl">
+                <div class="flex items-center justify-between mb-3">
+                    <div class="flex items-center gap-2">
+                        <i class="ph-duotone ph-timer text-cyan-400 text-xl"></i>
+                        <span class="font-bold text-sm text-white">Timer Diskusi</span>
+                    </div>
+                    <div class="flex gap-1.5">
+                        <button onclick="setTimerDuration(180)" class="timer-preset text-xs px-2.5 py-1 rounded-lg bg-navy-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700">3m</button>
+                        <button onclick="setTimerDuration(300)" class="timer-preset text-xs px-2.5 py-1 rounded-lg bg-navy-800 hover:bg-slate-700 text-slate-300 font-mono border border-slate-700">5m</button>
+                    </div>
+                </div>
+
+                <div class="flex items-center justify-between bg-navy-950 rounded-xl p-3 border border-slate-800/90">
+                    <div id="timer-display" class="font-mono text-3xl sm:text-4xl font-extrabold text-white tracking-wider pl-2">
+                        03:00
+                    </div>
+                    <div class="flex items-center gap-2">
+                        <button id="btn-timer-toggle" onclick="toggleTimer()" class="px-4 py-2.5 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-navy-950 font-bold text-sm flex items-center gap-1.5 transition">
+                            <i id="icon-timer-toggle" class="ph-fill ph-play text-base"></i>
+                            <span id="text-timer-toggle">Mulai</span>
+                        </button>
+                        <button onclick="resetTimer()" class="p-2.5 rounded-xl bg-navy-800 hover:bg-slate-700 text-slate-300 hover:text-white border border-slate-700 transition" title="Reset Timer">
+                            <i class="ph-bold ph-arrow-counter-clockwise text-base"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Petunjuk Giliran Bicara Acak -->
+                <div class="mt-3 pt-3 border-t border-slate-800/80 flex items-center justify-between text-xs">
+                    <span class="text-slate-400">Mulai bicara dari:</span>
+                    <div class="flex items-center gap-2">
+                        <span id="first-speaker-name" class="font-bold text-gold-400 bg-gold-500/10 px-2.5 py-1 rounded-lg border border-gold-500/20">Nama</span>
+                        <button onclick="pickRandomSpeaker()" class="p-1.5 rounded-lg bg-navy-800 hover:bg-slate-700 text-slate-300" title="Acak ulang pembicara pertama">
+                            <i class="ph-bold ph-shuffle"></i>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Daftar Pemain & Eliminasi Manual -->
+            <div class="bg-navy-900/90 border border-slate-800 rounded-2xl p-4 shadow-xl">
+                <div class="flex items-center justify-between mb-3">
+                    <div>
+                        <h3 class="font-bold text-sm text-white flex items-center gap-2">
+                            <i class="ph-duotone ph-users text-gold-400 text-lg"></i>
+                            <span>Status Pemain & Kontrol Wasit</span>
+                        </h3>
+                        <p class="text-[11px] text-slate-400 mt-0.5">Gunakan tombol voting bergilir di atas, atau eliminasi manual oleh wasit.</p>
+                    </div>
+                </div>
+
+                <div id="discussion-players-list" class="space-y-2.5">
+                    <!-- Dirender via JS -->
+                </div>
+            </div>
+
+            <!-- PANEL KHUSUS WASIT (REFEREE VIEW) -->
+            <div class="bg-gradient-to-b from-navy-900 to-slate-900 border-2 border-amber-500/40 rounded-2xl p-4 sm:p-5 shadow-2xl">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center gap-2.5">
+                        <div class="w-10 h-10 rounded-xl bg-amber-500/15 border border-amber-500/30 flex items-center justify-center text-amber-400">
+                            <i class="ph-fill ph-shield-warning text-2xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="font-extrabold text-sm sm:text-base text-white">Mode Wasit (Referee)</h3>
+                            <p class="text-xs text-slate-400">Lihat identitas Spy & kata rahasia</p>
+                        </div>
+                    </div>
+
+                    <button 
+                        id="btn-toggle-referee"
+                        onclick="requestRefereeAccess()"
+                        class="px-4 py-2.5 rounded-xl bg-amber-500 hover:bg-amber-400 text-navy-950 font-bold text-xs sm:text-sm transition flex items-center gap-1.5 shadow-lg shadow-amber-500/10"
+                    >
+                        <i class="ph-bold ph-eye text-base"></i>
+                        <span id="btn-referee-label">Buka Panel</span>
+                    </button>
+                </div>
+
+                <!-- Konten Rahasia Wasit (Tersembunyi secara default) -->
+                <div id="referee-secret-panel" class="hidden mt-4 pt-4 border-t border-slate-700/80 space-y-3.5 screen-fade">
+                    <div class="p-3 rounded-xl bg-crimson-500/10 border border-crimson-500/30 flex items-start gap-2.5">
+                        <i class="ph-fill ph-warning-circle text-crimson-500 text-lg shrink-0 mt-0.5"></i>
+                        <p class="text-xs text-red-200 leading-relaxed">
+                            <strong>Perhatian Wasit:</strong> Jangan arahkan layar ke pemain! Gunakan informasi ini untuk memandu jalannya permainan dan memeriksa hasil voting.
+                        </p>
+                    </div>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <!-- Kata Warga -->
+                        <div class="bg-navy-950 border border-emerald-500/30 rounded-xl p-3.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-emerald-400 flex items-center gap-1">
+                                <i class="ph-fill ph-users"></i> Kata Warga (Civilian)
+                            </span>
+                            <p id="ref-civilian-word" class="text-xl font-extrabold text-white mt-1">Nasi Goreng</p>
+                        </div>
+
+                        <!-- Kata Spy -->
+                        <div class="bg-navy-950 border border-crimson-500/40 rounded-xl p-3.5">
+                            <span class="text-[11px] font-bold uppercase tracking-wider text-crimson-400 flex items-center gap-1">
+                                <i class="ph-fill ph-detective"></i> Kata Mata-mata (Spy)
+                            </span>
+                            <p id="ref-spy-word" class="text-xl font-extrabold text-crimson-400 mt-1">Mie Goreng</p>
+                        </div>
+                    </div>
+
+                    <!-- Daftar Nama Spy -->
+                    <div class="bg-navy-950 border border-slate-800 rounded-xl p-3.5">
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400 block mb-2">
+                            Identitas Mata-mata (Spy):
+                        </span>
+                        <div id="ref-spy-names-list" class="flex flex-wrap gap-2">
+                            <!-- Diisi via JS -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Tombol Navigasi Bawah -->
+            <div class="grid grid-cols-2 gap-3 pt-2">
+                <button 
+                    onclick="playAgainSamePlayers()"
+                    class="py-3.5 px-4 rounded-xl bg-navy-800 hover:bg-slate-700 text-white font-bold text-xs sm:text-sm border border-slate-700 transition flex items-center justify-center gap-2"
+                >
+                    <i class="ph-bold ph-arrows-clockwise text-base text-gold-400"></i>
+                    <span>Main Lagi (Pemain Sama)</span>
+                </button>
+                <button 
+                    onclick="resetToSetup()"
+                    class="py-3.5 px-4 rounded-xl bg-navy-900 hover:bg-navy-800 text-slate-300 hover:text-white font-bold text-xs sm:text-sm border border-slate-800 transition flex items-center justify-center gap-2"
+                >
+                    <i class="ph-bold ph-sliders-horizontal text-base"></i>
+                    <span>Pengaturan Baru</span>
+                </button>
+            </div>
+        </section>
+
+
+        <!-- =====================================================================
+             LAYAR 4: FASE VOTING BERGILIR (PASS & PLAY VOTING)
+             ===================================================================== -->
+        <section id="screen-voting" class="hidden screen-fade flex-grow flex flex-col justify-center py-2 space-y-5">
+            
+            <!-- Indikator Progres Pemilih -->
+            <div id="voting-progress-wrapper" class="w-full">
+                <div class="flex justify-between items-center text-xs font-semibold text-slate-400 mb-2">
+                    <span id="voting-phase-label" class="uppercase tracking-wider text-rose-400">VOTING BERGILIR</span>
+                    <span id="voting-progress-text" class="text-gold-400 font-mono">Pemilih 1 / 4</span>
+                </div>
+                <div class="w-full h-2 bg-navy-800 rounded-full overflow-hidden">
+                    <div id="voting-progress-bar" class="h-full bg-rose-500 transition-all duration-300" style="width: 25%"></div>
+                </div>
+            </div>
+
+            <!-- SUB-TAMPILAN A: LAYAR PENGAMAN TRANSISI PEMILIH -->
+            <div id="voting-handoff-card" class="bg-gradient-to-b from-navy-800 to-navy-900 border-2 border-slate-700/80 rounded-3xl p-6 sm:p-8 flex flex-col items-center justify-between text-center shadow-2xl min-h-[380px] my-auto">
+                <div class="w-full flex justify-between items-center text-slate-500 text-xs font-mono">
+                    <span>BILIK SUARA RAHASIA</span>
+                    <i class="ph-fill ph-shield-check text-rose-400 text-base"></i>
+                </div>
+
+                <div class="my-auto space-y-4">
+                    <div class="w-20 h-20 mx-auto rounded-full bg-navy-950 border-2 border-rose-500/40 flex items-center justify-center shadow-inner animate-float">
+                        <i class="ph-duotone ph-ballot text-4xl text-rose-400"></i>
+                    </div>
+                    <div class="space-y-1">
+                        <p class="text-xs uppercase tracking-widest text-rose-400 font-bold">Giliran Voting:</p>
+                        <p class="text-xs text-slate-400">Berikan perangkat kepada</p>
+                        <h2 id="voter-handoff-name" class="text-3xl sm:text-4xl font-extrabold text-white tracking-tight break-words px-2">
+                            Nama Pemilih
+                        </h2>
+                    </div>
+                    <p class="text-xs text-slate-400 max-w-xs mx-auto leading-relaxed">
+                        Pastikan pemain lain tidak mengintip pilihan suaramu di dalam bilik suara!
+                    </p>
+                </div>
+
+                <div class="w-full space-y-2.5">
+                    <button 
+                        onclick="openVotingBooth()"
+                        class="w-full py-4 px-5 rounded-2xl bg-rose-500 hover:bg-rose-400 active:scale-95 text-white font-extrabold text-base shadow-lg shadow-rose-500/20 transition flex items-center justify-center gap-2"
+                    >
+                        <i class="ph-bold ph-door-open text-xl"></i>
+                        <span>Buka Bilik Suara</span>
+                    </button>
+                    <button 
+                        onclick="cancelVotingToDiscussion()"
+                        class="w-full py-2.5 px-4 rounded-xl bg-transparent hover:bg-navy-800 text-slate-400 hover:text-slate-200 font-semibold text-xs transition"
+                    >
+                        Batal & Kembali ke Diskusi
+                    </button>
+                </div>
+            </div>
+
+            <!-- SUB-TAMPILAN B: BILIK SUARA (MEMILIH TERSANGKA) -->
+            <div id="voting-booth-card" class="hidden bg-navy-900/95 border-2 border-rose-500/50 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-5 screen-fade my-auto">
+                <div class="flex items-center justify-between border-b border-slate-800 pb-3.5">
+                    <div>
+                        <span class="text-[11px] font-bold uppercase tracking-wider text-rose-400">Pemilih Aktif</span>
+                        <h3 id="booth-voter-name" class="text-xl font-extrabold text-white">Nama Pemilih</h3>
+                    </div>
+                    <span class="px-2.5 py-1 rounded-full bg-navy-950 border border-slate-700 text-[11px] font-mono text-slate-300">
+                        Pilih 1 Tersangka
+                    </span>
+                </div>
+
+                <p id="booth-instruction-text" class="text-xs text-slate-300 leading-relaxed">
+                    Siapa yang menurutmu adalah <strong class="text-rose-400">Spy</strong>? Ketuk nama di bawah ini untuk memilih:
+                </p>
+
+                <!-- Daftar Kandidat yang Bisa Dipilih -->
+                <div id="voting-candidates-list" class="space-y-2.5 max-h-[300px] overflow-y-auto pr-1">
+                    <!-- Dirender via JS -->
+                </div>
+
+                <button 
+                    id="btn-confirm-vote"
+                    onclick="submitCurrentVote()"
+                    disabled
+                    class="w-full py-4 px-5 rounded-2xl bg-emerald-500 hover:bg-emerald-400 disabled:bg-slate-800 disabled:text-slate-500 disabled:cursor-not-allowed active:scale-95 text-navy-950 font-extrabold text-base shadow-lg shadow-emerald-500/20 disabled:shadow-none transition flex items-center justify-center gap-2"
+                >
+                    <i class="ph-bold ph-check-circle text-xl"></i>
+                    <span id="btn-confirm-vote-text">Konfirmasi Pilihan</span>
+                </button>
+            </div>
+
+            <!-- SUB-TAMPILAN C: REKAP HASIL VOTING -->
+            <div id="voting-results-card" class="hidden bg-navy-900/95 border border-slate-700/80 rounded-3xl p-5 sm:p-6 shadow-2xl space-y-5 screen-fade my-auto">
+                <div class="text-center space-y-1">
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-gold-500/15 text-gold-400 border border-gold-500/30">
+                        <i class="ph-fill ph-chart-bar"></i> HASIL PERHITUNGAN SUARA
+                    </span>
+                    <h2 class="text-2xl font-extrabold text-white pt-1">Rekap Hasil Voting</h2>
+                    <p class="text-xs text-slate-400">Semua pemain aktif telah memberikan suaranya.</p>
+                </div>
+
+                <!-- Daftar Perolehan Suara -->
+                <div id="voting-tally-list" class="space-y-3">
+                    <!-- Dirender via JS -->
+                </div>
+
+                <!-- Kotak Keputusan (Suara Terbanyak Tunggal vs Hasil Seri) -->
+                <div id="voting-decision-box" class="pt-2 space-y-3">
+                    <!-- Dirender via JS -->
+                </div>
+            </div>
+
+        </section>
+
+    </main>
+
+    <!-- =====================================================================
+         MODAL HASIL ELIMINASI (LANJUT RONDE BERIKUTNYA)
+         ===================================================================== -->
+    <div id="modal-elimination-result" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+        <div id="elim-result-card" class="bg-navy-900 border-2 border-slate-700 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl screen-fade">
+            <div id="elim-result-icon-box" class="w-20 h-20 mx-auto rounded-full bg-crimson-500/20 border-2 border-crimson-400 flex items-center justify-center text-crimson-400 mb-4">
+                <i id="elim-result-icon" class="ph-fill ph-detective text-4xl"></i>
+            </div>
+
+            <span id="elim-result-badge" class="inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-crimson-500/20 text-crimson-400 mb-2">
+                HASIL ELIMINASI
+            </span>
+            <h3 id="elim-result-name" class="text-2xl font-extrabold text-white mb-1">Nama Pemain</h3>
+            <p id="elim-result-role-text" class="text-sm font-bold text-crimson-400 mb-3">Ternyata adalah SPY!</p>
+            <p id="elim-result-desc" class="text-xs text-slate-300 leading-relaxed mb-6">
+                Masih ada mata-mata yang bersembunyi! Permainan dilanjutkan ke ronde diskusi berikutnya.
+            </p>
+
+            <button 
+                onclick="continueToNextRound()"
+                class="w-full py-3.5 px-5 rounded-2xl bg-gold-500 hover:bg-gold-400 text-navy-950 font-extrabold text-sm shadow-lg shadow-gold-500/20 transition flex items-center justify-center gap-2"
+            >
+                <i class="ph-bold ph-arrow-right text-lg"></i>
+                <span>Lanjut ke Ronde Diskusi Berikutnya</span>
+            </button>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         MODAL KEMENANGAN (GAME OVER)
+         ===================================================================== -->
+    <div id="modal-gameover" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/85 backdrop-blur-md">
+        <div id="gameover-card" class="bg-navy-900 border-2 border-gold-500 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl screen-fade">
+            <div id="gameover-icon-box" class="w-20 h-20 mx-auto rounded-full bg-gold-500/20 border-2 border-gold-400 flex items-center justify-center text-gold-400 mb-4">
+                <i id="gameover-icon" class="ph-fill ph-trophy text-4xl"></i>
+            </div>
+            
+            <span id="gameover-badge" class="inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-gold-500/20 text-gold-400 mb-2">
+                MISI SELESAI
+            </span>
+            <h2 id="gameover-title" class="text-2xl sm:text-3xl font-extrabold text-white mb-2">Warga Menang!</h2>
+            <p id="gameover-subtitle" class="text-sm text-slate-300 mb-5">Semua mata-mata berhasil ditangkap dan dieliminasi.</p>
+
+            <!-- Ringkasan Kata & Spy -->
+            <div class="bg-navy-950 border border-slate-800 rounded-2xl p-4 mb-6 text-left space-y-3">
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
+                    <span class="text-xs text-slate-400">Kata Warga:</span>
+                    <span id="go-civilian-word" class="font-bold text-sm text-emerald-400">Sepak Bola</span>
+                </div>
+                <div class="flex justify-between items-center border-b border-slate-800 pb-2.5">
+                    <span class="text-xs text-slate-400">Kata Spy:</span>
+                    <span id="go-spy-word" class="font-bold text-sm text-crimson-400">Futsal</span>
+                </div>
+                <div>
+                    <span class="text-xs text-slate-400 block mb-1.5">Para Mata-mata (Spy):</span>
+                    <div id="go-spy-list" class="flex flex-wrap gap-1.5"></div>
+                </div>
+            </div>
+
+            <div class="grid grid-cols-2 gap-3">
+                <button onclick="closeGameOverModal(); playAgainSamePlayers();" class="py-3.5 px-4 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 font-extrabold text-sm transition">
+                    Main Lagi
+                </button>
+                <button onclick="closeGameOverModal()" class="py-3.5 px-4 rounded-xl bg-navy-800 hover:bg-slate-700 text-white font-bold text-sm border border-slate-700 transition">
+                    Lihat Papan
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         MODAL ATURAN BERMAIN
+         ===================================================================== -->
+    <div id="modal-rules" class="fixed inset-0 z-50 hidden items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+        <div class="bg-navy-900 border border-slate-700 rounded-3xl max-w-md w-full p-6 shadow-2xl screen-fade max-h-[85vh] overflow-y-auto">
+            <div class="flex items-center justify-between mb-4">
+                <h3 class="text-lg font-extrabold text-white flex items-center gap-2">
+                    <i class="ph-fill ph-book-open-text text-gold-400 text-xl"></i>
+                    <span>Cara Bermain Who's the Spy</span>
+                </h3>
+                <button onclick="closeRulesModal()" class="p-1.5 rounded-lg bg-navy-800 text-slate-400 hover:text-white">
+                    <i class="ph-bold ph-x text-lg"></i>
+                </button>
+            </div>
+            
+            <ol class="space-y-3 text-sm text-slate-300 list-decimal list-inside leading-relaxed">
+                <li><strong class="text-white">Persiapan:</strong> Masukkan minimal 3 nama pemain, tentukan jumlah <em>Spy</em> (Mata-mata), dan pilih kategori kata.</li>
+                <li><strong class="text-white">Bagi Kartu:</strong> Oper HP secara bergiliran. Setiap pemain menekan <em>"Lihat Kartu Saya"</em> untuk membaca kata rahasianya secara diam-diam.</li>
+                <li><strong class="text-white">Perbedaan Kata:</strong> Semua <strong>Warga</strong> mendapat kata yang sama (misal: <em>Kopi</em>), sedangkan <strong>Spy</strong> mendapat kata yang mirip (misal: <em>Teh</em>).</li>
+                <li><strong class="text-white">Diskusi:</strong> Secara bergiliran, tiap pemain mendeskripsikan katanya dalam 1 kalimat singkat tanpa menyebut kata aslinya.</li>
+                <li><strong class="text-white">Voting & Wasit:</strong> Pemain berdiskusi dan melakukan voting untuk mengeliminasi orang yang dicurigai sebagai Spy. <strong>Wasit</strong> dapat membuka Panel Wasit untuk memantau jalannya permainan.</li>
+            </ol>
+
+            <button onclick="closeRulesModal()" class="w-full mt-6 py-3 rounded-xl bg-gold-500 hover:bg-gold-400 text-navy-950 font-extrabold text-sm transition">
+                Mengerti, Ayo Main!
+            </button>
+        </div>
+    </div>
+
+    <!-- =====================================================================
+         JAVASCRIPT LOGIKA PERMAINAN & DATABASE KATA INDONESIA
+         ===================================================================== -->
+    <script>
+        // ---------------------------------------------------------------------
+        // 1. DATABASE PASANGAN KATA BAHASA INDONESIA (MIN. 18 PASANG PER KATEGORI)
+        // ---------------------------------------------------------------------
+        const WORD_DATABASE = {
+            olahraga: {
+                name: "Olahraga",
+                icon: "⚽",
+                pairs: [
+                    ["Sepak Bola", "Futsal"],
+                    ["Bulu Tangkis", "Tenis Lapangan"],
+                    ["Bola Basket", "Bola Voli"],
+                    ["Renang", "Selam (Diving)"],
+                    ["Lari Maraton", "Jalan Cepat"],
+                    ["Tinju", "Karate"],
+                    ["Bersepeda", "Balap Motor"],
+                    ["Golf", "Biliar"],
+                    ["Tenis Meja", "Squash"],
+                    ["Catur", "Congklak"],
+                    ["Panahan", "Menembak"],
+                    ["Angkat Besi", "Binaraga"],
+                    ["Selancar (Surfing)", "Skateboard"],
+                    ["Yoga", "Senam Aerobik"],
+                    ["Taekwondo", "Pencak Silat"],
+                    ["Bowling", "Lempar Lembing"],
+                    ["Panjat Tebing", "Mendaki Gunung"],
+                    ["Sepatu Roda", "Ice Skating"]
+                ]
+            },
+            hewan: {
+                name: "Hewan",
+                icon: "🦁",
+                pairs: [
+                    ["Kucing", "Harimau"],
+                    ["Anjing", "Serigala"],
+                    ["Buaya", "Komodo"],
+                    ["Kupu-kupu", "Capung"],
+                    ["Lumba-lumba", "Ikan Hiu"],
+                    ["Bebek", "Angsa"],
+                    ["Elang", "Burung Hantu"],
+                    ["Kuda", "Zebra"],
+                    ["Sapi", "Kerbau"],
+                    ["Kelinci", "Marmut"],
+                    ["Monyet", "Orangutan"],
+                    ["Lebah", "Tawon"],
+                    ["Cicak", "Tokek"],
+                    ["Semut", "Rayap"],
+                    ["Kura-kura", "Penyu"],
+                    ["Gajah", "Badak"],
+                    ["Ular Kobra", "Belut"],
+                    ["Ayam", "Burung Puyuh"],
+                    ["Paus", "Gurita"]
+                ]
+            },
+            makanan: {
+                name: "Makanan & Minuman",
+                icon: "🍜",
+                pairs: [
+                    ["Nasi Goreng", "Mie Goreng"],
+                    ["Bakso", "Mie Ayam"],
+                    ["Sate Ayam", "Ayam Bakar"],
+                    ["Soto Ayam", "Opor Ayam"],
+                    ["Rendang", "Semur Daging"],
+                    ["Gado-gado", "Ketoprak"],
+                    ["Martabak Manis", "Kue Cubit"],
+                    ["Pisang Goreng", "Tahu Crispy"],
+                    ["Bubur Ayam", "Lontong Sayur"],
+                    ["Es Teh Manis", "Es Jeruk"],
+                    ["Kopi Hitam", "Cokelat Panas"],
+                    ["Donat", "Roti Bakar"],
+                    ["Pizza", "Burger"],
+                    ["Pempek", "Siomay"],
+                    ["Nasi Uduk", "Nasi Kuning"],
+                    ["Kerupuk", "Keripik Singkong"],
+                    ["Es Krim", "Puding"],
+                    ["Seblak", "Baso Aci"],
+                    ["Tempe Mendoan", "Bakwan Jagung"]
+                ]
+            },
+            profesi: {
+                name: "Profesi",
+                icon: "👨‍⚕️",
+                pairs: [
+                    ["Dokter", "Perawat"],
+                    ["Polisi", "Satpam"],
+                    ["Guru", "Dosen"],
+                    ["Pilot", "Pramugari"],
+                    ["Koki (Chef)", "Barista"],
+                    ["Hakim", "Pengacara"],
+                    ["Tentara", "Bodyguard"],
+                    ["Arsitek", "Kontraktor"],
+                    ["Fotografer", "Videografer"],
+                    ["Aktor", "Penyanyi"],
+                    ["Wartawan", "Penulis"],
+                    ["Sopir Taksi", "Ojek Online"],
+                    ["Pemadam Kebakaran", "Tim SAR"],
+                    ["Nelayan", "Petani"],
+                    ["Apoteker", "Dokter Gigi"],
+                    ["Tukang Cukur", "Penata Rias (MUA)"],
+                    ["Programmer", "Desainer Grafis"],
+                    ["Masinis", "Nakhoda"]
+                ]
+            },
+            tempat: {
+                name: "Tempat",
+                icon: "🏝️",
+                pairs: [
+                    ["Pantai", "Kolam Renang"],
+                    ["Gunung", "Bukit"],
+                    ["Rumah Sakit", "Puskesmas"],
+                    ["Sekolah", "Kampus"],
+                    ["Pasar Tradisional", "Supermarket"],
+                    ["Bioskop", "Teater"],
+                    ["Bandara", "Stasiun Kereta"],
+                    ["Perpustakaan", "Toko Buku"],
+                    ["Kebun Binatang", "Taman Safari"],
+                    ["Hotel", "Apartemen"],
+                    ["Restoran", "Kafe"],
+                    ["Museum", "Galeri Seni"],
+                    ["Stadion", "GOR (Gedung Olahraga)"],
+                    ["Hutan", "Kebun Raya"],
+                    ["Pelabuhan", "Terminal Bus"],
+                    ["Kantor Pos", "Bank"],
+                    ["Salon", "Barbershop"],
+                    ["Taman Bermain", "Waterpark"]
+                ]
+            },
+            benda: {
+                name: "Benda Sehari-hari",
+                icon: "📱",
+                pairs: [
+                    ["Smartphone", "Tablet"],
+                    ["Laptop", "Komputer PC"],
+                    ["Sendok", "Garpu"],
+                    ["Bantal", "Guling"],
+                    ["Payung", "Jas Hujan"],
+                    ["Sapu", "Alat Pel"],
+                    ["Kacamata", "Lensa Kontak"],
+                    ["Jam Tangan", "Gelang"],
+                    ["Pulpen", "Pensil"],
+                    ["Buku Tulis", "Novel"],
+                    ["Sikat Gigi", "Pasta Gigi"],
+                    ["Handuk", "Selimut"],
+                    ["Gelas", "Cangkir"],
+                    ["Kursi", "Sofa"],
+                    ["Cermin", "Jendela"],
+                    ["Topi", "Helm"],
+                    ["Sepatu", "Sandal"],
+                    ["Kipas Angin", "AC (Pendingin Ruangan)"],
+                    ["Earphone", "Speaker"]
+                ]
+            },
+            kendaraan: {
+                name: "Kendaraan",
+                icon: "🚀",
+                pairs: [
+                    ["Motor", "Sepeda"],
+                    ["Mobil", "Truk"],
+                    ["Pesawat Terbang", "Helikopter"],
+                    ["Kereta Api", "MRT / LRT"],
+                    ["Kapal Pesiar", "Perahu Nelayan"],
+                    ["Bus", "Angkot"],
+                    ["Becak", "Delman"],
+                    ["Ambulans", "Mobil Polisi"],
+                    ["Skuter Listrik", "Hoverboard"],
+                    ["Kapal Selam", "Kapal Feri"],
+                    ["Taksi", "Mobil Travel"],
+                    ["Buldoser", "Ekskavator"],
+                    ["Jet Ski", "Speedboat"],
+                    ["Balon Udara", "Paralayang"],
+                    ["Mobil Balap F1", "Go-Kart"],
+                    ["Traktor", "Mobil Pick-up"],
+                    ["Kereta Gantung", "Bianglala"]
+                ]
+            }
+        };
+
+        // ---------------------------------------------------------------------
+        // 2. STATE PERMAINAN
+        // ---------------------------------------------------------------------
+        let gameState = {
+            players: ["Andi", "Budi", "Citra", "Dewi"], // Default contoh agar mudah dicoba, bisa dihapus/ditambah
+            spyCount: 1,
+            selectedCategory: "random", // 'random' atau key dari WORD_DATABASE
+            revealRoleMode: false, // false = Mode Klasik (hanya kata), true = Tampilkan peran
+            
+            // State saat permainan berjalan
+            activePlayers: [], // { id, name, role: 'civilian'|'spy', word, isEliminated }
+            currentCategoryName: "",
+            currentCategoryIcon: "",
+            civilianWord: "",
+            spyWord: "",
+            currentPassIndex: 0,
+            isCardFlipped: false,
+            
+            // Timer & Wasit
+            timerSeconds: 180,
+            timerDefault: 180,
+            timerInterval: null,
+            isTimerRunning: false,
+            refereeUnlocked: false,
+            pendingEliminateId: null,
+            usedWordPairs: [], // Mencegah kata berulang saat main lagi
+
+            // State Voting Bergilir
+            voting: {
+                voters: [],             // Array objek pemain aktif yang akan memberikan suara
+                currentVoterIndex: 0,   // Indeks pemilih saat ini
+                selectedCandidateId: null, // ID kandidat yang dipilih pemilih saat ini
+                votes: [],              // Array { voterId, voterName, targetId, targetName }
+                tieCandidateIds: null   // null jika voting normal, atau Array ID kandidat jika voting ulang seri
+            }
+        };
+
+        // ---------------------------------------------------------------------
+        // 3. INISIALISASI & FUNGSI SETUP
+        // ---------------------------------------------------------------------
+        window.onload = function () {
+            renderPlayersList();
+            renderCategoryGrid();
+            updateSpyControls();
+        };
+
+        // Tambah pemain dari form
+        document.getElementById('add-player-form').addEventListener('submit', function (e) {
+            e.preventDefault();
+            const input = document.getElementById('player-name-input');
+            const name = input.value.trim();
+
+            if (!name) {
+                showToast("Masukkan nama pemain terlebih dahulu!", "warning");
+                return;
+            }
+            if (gameState.players.some(p => p.toLowerCase() === name.toLowerCase())) {
+                showToast(`Nama "${name}" sudah ada di daftar!`, "error");
+                return;
+            }
+            if (gameState.players.length >= 16) {
+                showToast("Maksimal 16 pemain dalam satu permainan.", "warning");
+                return;
+            }
+
+            gameState.players.push(name);
+            input.value = "";
+            input.focus();
+            renderPlayersList();
+            updateSpyControls();
+        });
+
+        function removePlayer(index) {
+            gameState.players.splice(index, 1);
+            renderPlayersList();
+            updateSpyControls();
+        }
+
+        function renderPlayersList() {
+            const listEl = document.getElementById('players-list');
+            const hintEl = document.getElementById('empty-players-hint');
+            const badgeEl = document.getElementById('player-count-badge');
+
+            listEl.innerHTML = "";
+            const count = gameState.players.length;
+            badgeEl.textContent = `${count} Pemain ${count < 3 ? '(Min. 3)' : '✓'}`;
+            badgeEl.className = count >= 3 
+                ? "text-xs font-bold px-2.5 py-1 rounded-full bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
+                : "text-xs font-bold px-2.5 py-1 rounded-full bg-navy-800 text-gold-400 border border-gold-500/30";
+
+            if (count === 0) {
+                hintEl.classList.remove('hidden');
+            } else {
+                hintEl.classList.add('hidden');
+                gameState.players.forEach((player, idx) => {
+                    const chip = document.createElement('div');
+                    chip.className = "inline-flex items-center gap-2 bg-navy-800 border border-slate-700/80 pl-3 pr-1.5 py-1.5 rounded-xl text-sm font-medium text-white shadow-sm";
+                    chip.innerHTML = `
+                        <span class="text-xs font-mono text-slate-400">${idx + 1}.</span>
+                        <span>${escapeHtml(player)}</span>
+                        <button type="button" onclick="removePlayer(${idx})" class="w-6 h-6 rounded-lg hover:bg-crimson-500/20 text-slate-400 hover:text-crimson-400 flex items-center justify-center transition" aria-label="Hapus ${escapeHtml(player)}">
+                            <i class="ph-bold ph-x text-xs"></i>
+                        </button>
+                    `;
+                    listEl.appendChild(chip);
+                });
+            }
+        }
+
+        function getMaxSpies() {
+            // Maksimal setengah dari jumlah pemain (agar seimbang, minimal 1)
+            const count = gameState.players.length;
+            if (count <= 3) return 1;
+            return Math.max(1, Math.floor((count - 1) / 2));
+        }
+
+        function updateSpyControls() {
+            const maxSpies = getMaxSpies();
+            if (gameState.spyCount > maxSpies) {
+                gameState.spyCount = maxSpies;
+            }
+            if (gameState.spyCount < 1) {
+                gameState.spyCount = 1;
+            }
+
+            document.getElementById('spy-count-display').textContent = gameState.spyCount;
+            document.getElementById('btn-spy-minus').disabled = gameState.spyCount <= 1;
+            document.getElementById('btn-spy-plus').disabled = gameState.spyCount >= maxSpies;
+            
+            const hint = document.getElementById('spy-ratio-hint');
+            hint.textContent = gameState.players.length < 3 
+                ? "Tambahkan minimal 3 pemain" 
+                : `Maksimal ${maxSpies} Spy untuk ${gameState.players.length} pemain`;
+        }
+
+        function changeSpyCount(delta) {
+            const maxSpies = getMaxSpies();
+            const next = gameState.spyCount + delta;
+            if (next >= 1 && next <= maxSpies) {
+                gameState.spyCount = next;
+                updateSpyControls();
+            }
+        }
+
+        function updateRoleModeText() {
+            const isChecked = document.getElementById('reveal-role-toggle').checked;
+            gameState.revealRoleMode = isChecked;
+            const desc = document.getElementById('role-mode-desc');
+            if (isChecked) {
+                desc.innerHTML = `<span class="text-cyan-400 font-semibold">Mode Terbuka (Aktif):</span> Kartu akan menampilkan status apakah pemain adalah Spy atau Warga.`;
+            } else {
+                desc.innerHTML = `<span class="text-gold-400 font-semibold">Mode Klasik (Aktif):</span> Pemain hanya melihat kata, tidak tahu dirinya Spy/Warga.`;
+            }
+        }
+
+        function renderCategoryGrid() {
+            const grid = document.getElementById('category-grid');
+            grid.innerHTML = "";
+
+            // Opsi Acak (Semua Kategori)
+            const categories = [
+                { key: "random", name: "Acak (Semua)", icon: "🎲", count: "125+ Kata" },
+                ...Object.entries(WORD_DATABASE).map(([key, val]) => ({
+                    key,
+                    name: val.name,
+                    icon: val.icon,
+                    count: `${val.pairs.length} Pasang`
+                }))
+            ];
+
+            categories.forEach(cat => {
+                const isSelected = gameState.selectedCategory === cat.key;
+                const btn = document.createElement('button');
+                btn.type = "button";
+                btn.onclick = () => {
+                    gameState.selectedCategory = cat.key;
+                    renderCategoryGrid();
+                };
+                btn.className = isSelected
+                    ? "p-3.5 rounded-2xl bg-gold-500/15 border-2 border-gold-400 text-left transition flex items-center gap-3 shadow-md shadow-gold-500/10"
+                    : "p-3.5 rounded-2xl bg-navy-950/80 hover:bg-navy-800 border border-slate-800 text-left transition flex items-center gap-3";
+
+                btn.innerHTML = `
+                    <span class="text-2xl shrink-0">${cat.icon}</span>
+                    <div class="min-w-0">
+                        <div class="font-bold text-xs sm:text-sm ${isSelected ? 'text-gold-400' : 'text-white'} truncate">${cat.name}</div>
+                        <div class="text-[11px] text-slate-400">${cat.count}</div>
+                    </div>
+                `;
+                grid.appendChild(btn);
+            });
+        }
+
+        // ---------------------------------------------------------------------
+        // 4. LOGIKA MEMULAI PERMAINAN & PEMBAGIAN PERAN
+        // ---------------------------------------------------------------------
+        function startGame() {
+            if (gameState.players.length < 3) {
+                showToast("Minimal harus ada 3 pemain untuk memulai permainan!", "error");
+                return;
+            }
+
+            // Pilih kategori
+            let chosenCatKey = gameState.selectedCategory;
+            if (chosenCatKey === "random") {
+                const keys = Object.keys(WORD_DATABASE);
+                chosenCatKey = keys[Math.floor(Math.random() * keys.length)];
+            }
+
+            const categoryObj = WORD_DATABASE[chosenCatKey];
+            gameState.currentCategoryName = categoryObj.name;
+            gameState.currentCategoryIcon = categoryObj.icon;
+
+            // Pilih pasangan kata (hindari yang baru saja dipakai jika masih ada sisa)
+            let availablePairs = categoryObj.pairs.filter(pair => !gameState.usedWordPairs.includes(pair[0]));
+            if (availablePairs.length === 0) {
+                gameState.usedWordPairs = [];
+                availablePairs = categoryObj.pairs;
+            }
+
+            const randomPair = availablePairs[Math.floor(Math.random() * availablePairs.length)];
+            gameState.usedWordPairs.push(randomPair[0]);
+
+            // Acak mana yang menjadi kata Warga dan mana yang menjadi kata Spy
+            const flipWordOrder = Math.random() < 0.5;
+            gameState.civilianWord = flipWordOrder ? randomPair[0] : randomPair[1];
+            gameState.spyWord = flipWordOrder ? randomPair[1] : randomPair[0];
+
+            // Tentukan indeks pemain yang menjadi Spy secara acak
+            const totalPlayers = gameState.players.length;
+            const indices = Array.from({ length: totalPlayers }, (_, i) => i);
+            shuffleArray(indices);
+            const spyIndices = new Set(indices.slice(0, gameState.spyCount));
+
+            // Susun data pemain aktif
+            gameState.activePlayers = gameState.players.map((name, idx) => {
+                const isSpy = spyIndices.has(idx);
+                return {
+                    id: idx,
+                    name: name,
+                    role: isSpy ? "spy" : "civilian",
+                    word: isSpy ? gameState.spyWord : gameState.civilianWord,
+                    isEliminated: false
+                };
+            });
+
+            // Reset state fase pass & play
+            gameState.currentPassIndex = 0;
+            gameState.isCardFlipped = false;
+            gameState.refereeUnlocked = false;
+
+            // Pindah ke layar pembagian kartu
+            switchScreen('screen-pass');
+            setupCurrentPassCard();
+        }
+
+        // ---------------------------------------------------------------------
+        // 5. LOGIKA PASS & PLAY (BUKA KARTU GILIRAN)
+        // ---------------------------------------------------------------------
+        function setupCurrentPassCard() {
+            const idx = gameState.currentPassIndex;
+            const total = gameState.activePlayers.length;
+            const player = gameState.activePlayers[idx];
+
+            // Pastikan kartu dalam posisi tertutup
+            const cardInner = document.getElementById('secret-card-inner');
+            cardInner.classList.remove('rotate-y-180');
+            gameState.isCardFlipped = false;
+
+            // Update progress bar
+            document.getElementById('pass-progress-text').textContent = `Pemain ${idx + 1} / ${total}`;
+            document.getElementById('pass-progress-bar').style.width = `${((idx + 1) / total) * 100}%`;
+
+            // Sisi depan kartu
+            document.getElementById('pass-player-name').textContent = player.name;
+
+            // Siapkan sisi belakang kartu (kata & peran)
+            document.getElementById('card-back-player-label').textContent = player.name.toUpperCase();
+            document.getElementById('card-back-category-badge').textContent = `${gameState.currentCategoryIcon} ${gameState.currentCategoryName}`;
+            document.getElementById('secret-word-text').textContent = player.word;
+
+            const roleContainer = document.getElementById('role-badge-container');
+            const cardBackFace = document.getElementById('card-back-face');
+            const hintText = document.getElementById('card-instruction-hint');
+
+            if (gameState.revealRoleMode) {
+                // Mode Terbuka: Tampilkan apakah Spy atau Warga
+                if (player.role === 'spy') {
+                    roleContainer.innerHTML = `
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-extrabold bg-crimson-500/20 text-crimson-400 border border-crimson-500/40">
+                            <i class="ph-fill ph-detective text-sm"></i> KAMU ADALAH SPY!
+                        </span>`;
+                    cardBackFace.className = "absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-b from-red-950/90 to-navy-900 border-2 border-crimson-500/70 rounded-3xl p-6 flex flex-col items-center justify-between text-center shadow-2xl";
+                    hintText.textContent = "Berbaurlah dengan warga! Tebak kata mereka dari petunjuk yang diberikan tanpa ketahuan.";
+                } else {
+                    roleContainer.innerHTML = `
+                        <span class="inline-flex items-center gap-1.5 px-3.5 py-1 rounded-full text-xs font-extrabold bg-emerald-500/20 text-emerald-400 border border-emerald-500/40">
+                            <i class="ph-fill ph-shield-check text-sm"></i> KAMU ADALAH WARGA
+                        </span>`;
+                    cardBackFace.className = "absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-b from-emerald-950/70 to-navy-900 border-2 border-emerald-500/60 rounded-3xl p-6 flex flex-col items-center justify-between text-center shadow-2xl";
+                    hintText.textContent = "Temukan siapa yang memiliki kata berbeda di antara kalian!";
+                }
+            } else {
+                // Mode Klasik: Hanya kata rahasia
+                roleContainer.innerHTML = `
+                    <span class="inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-bold bg-navy-950/90 text-gold-400 border border-gold-500/30">
+                        <i class="ph-fill ph-key"></i> KATA RAHASIAMU
+                    </span>`;
+                cardBackFace.className = "absolute inset-0 backface-hidden rotate-y-180 bg-gradient-to-b from-slate-800 to-navy-900 border-2 border-gold-500/60 rounded-3xl p-6 flex flex-col items-center justify-between text-center shadow-2xl";
+                hintText.textContent = "Ingat kata ini! Deskripsikan dengan cerdik tanpa membocorkannya secara langsung.";
+            }
+
+            // Teks tombol lanjut
+            const btnNextText = document.getElementById('btn-next-player-text');
+            if (idx === total - 1) {
+                btnNextText.textContent = "Tutup Kartu & Mulai Diskusi";
+            } else {
+                btnNextText.textContent = `Tutup & Oper ke ${gameState.activePlayers[idx + 1].name}`;
+            }
+        }
+
+        function flipCardOpen() {
+            if (gameState.isCardFlipped) return;
+            gameState.isCardFlipped = true;
+            document.getElementById('secret-card-inner').classList.add('rotate-y-180');
+        }
+
+        function nextPlayerCard() {
+            if (!gameState.isCardFlipped) return;
+
+            const cardInner = document.getElementById('secret-card-inner');
+            cardInner.classList.remove('rotate-y-180');
+            gameState.isCardFlipped = false;
+
+            // Tunggu animasi kartu tertutup setengah jalan sebelum mengganti data pemain berikutnya
+            setTimeout(() => {
+                gameState.currentPassIndex++;
+                if (gameState.currentPassIndex < gameState.activePlayers.length) {
+                    setupCurrentPassCard();
+                } else {
+                    enterDiscussionPhase();
+                }
+            }, 320);
+        }
+
+        // ---------------------------------------------------------------------
+        // 6. FASE DISKUSI, VOTING & PANEL WASIT
+        // ---------------------------------------------------------------------
+        function enterDiscussionPhase() {
+            switchScreen('screen-discussion');
+
+            // Set info kategori
+            document.getElementById('active-category-icon').textContent = gameState.currentCategoryIcon;
+            document.getElementById('active-category-name').textContent = gameState.currentCategoryName;
+
+            // Pastikan panel wasit tertutup di awal
+            document.getElementById('referee-secret-panel').classList.add('hidden');
+            document.getElementById('btn-referee-label').textContent = "Buka Panel";
+            gameState.refereeUnlocked = false;
+
+            // Isi data panel wasit (siap dibuka saat wasit konfirmasi)
+            document.getElementById('ref-civilian-word').textContent = gameState.civilianWord;
+            document.getElementById('ref-spy-word').textContent = gameState.spyWord;
+
+            const spyListEl = document.getElementById('ref-spy-names-list');
+            spyListEl.innerHTML = "";
+            gameState.activePlayers
+                .filter(p => p.role === 'spy')
+                .forEach(spy => {
+                    const badge = document.createElement('span');
+                    badge.className = "inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-crimson-500/20 border border-crimson-500/40 text-crimson-300 font-bold text-sm";
+                    badge.innerHTML = `<i class="ph-fill ph-detective"></i> ${escapeHtml(spy.name)}`;
+                    spyListEl.appendChild(badge);
+                });
+
+            // Reset Timer & Pilih Pembicara Pertama
+            resetTimer();
+            pickRandomSpeaker();
+            renderDiscussionPlayers();
+        }
+
+        function pickRandomSpeaker() {
+            const alive = gameState.activePlayers.filter(p => !p.isEliminated);
+            if (alive.length > 0) {
+                const chosen = alive[Math.floor(Math.random() * alive.length)];
+                document.getElementById('first-speaker-name').textContent = chosen.name;
+            }
+        }
+
+        function renderDiscussionPlayers() {
+            const container = document.getElementById('discussion-players-list');
+            container.innerHTML = "";
+
+            const aliveCount = gameState.activePlayers.filter(p => !p.isEliminated).length;
+            document.getElementById('alive-counter-text').textContent = `${aliveCount} / ${gameState.activePlayers.length}`;
+
+            gameState.activePlayers.forEach(player => {
+                const row = document.createElement('div');
+                if (player.isEliminated) {
+                    const isSpy = player.role === 'spy';
+                    row.className = "flex items-center justify-between p-3 rounded-xl bg-navy-950/60 border border-slate-800/70 opacity-75";
+                    row.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-slate-800 flex items-center justify-center text-slate-500">
+                                <i class="ph-bold ph-skull"></i>
+                            </div>
+                            <div>
+                                <p class="font-bold text-sm text-slate-400 line-through">${escapeHtml(player.name)}</p>
+                                <span class="text-[11px] font-bold ${isSpy ? 'text-crimson-400' : 'text-emerald-400'}">
+                                    Tereliminasi • Ternyata ${isSpy ? 'SPY 🕵️' : 'WARGA 👤'}
+                                </span>
+                            </div>
+                        </div>
+                        <button onclick="restorePlayer(${player.id})" class="text-xs px-2.5 py-1.5 rounded-lg bg-navy-800 hover:bg-slate-700 text-slate-300 border border-slate-700 transition">
+                            Pulihkan
+                        </button>
+                    `;
+                } else {
+                    row.className = "flex items-center justify-between p-3 rounded-xl bg-navy-950 border border-slate-800 hover:border-slate-700 transition";
+                    row.innerHTML = `
+                        <div class="flex items-center gap-3">
+                            <div class="w-8 h-8 rounded-lg bg-gold-500/15 border border-gold-500/30 flex items-center justify-center text-gold-400 font-bold text-xs">
+                                ${escapeHtml(player.name.charAt(0).toUpperCase())}
+                            </div>
+                            <span class="font-bold text-sm text-white">${escapeHtml(player.name)}</span>
+                        </div>
+                        <button onclick="promptEliminatePlayer(${player.id})" class="px-3 py-1.5 rounded-xl bg-crimson-500/15 hover:bg-crimson-500 text-crimson-400 hover:text-white border border-crimson-500/30 text-xs font-bold transition flex items-center gap-1">
+                            <i class="ph-bold ph-gavel"></i>
+                            <span>Eliminasi</span>
+                        </button>
+                    `;
+                }
+                container.appendChild(row);
+            });
+        }
+
+        // Eliminasi & Pengecekan Kondisi Kemenangan
+        function promptEliminatePlayer(playerId) {
+            const player = gameState.activePlayers.find(p => p.id === playerId);
+            if (!player) return;
+
+            gameState.pendingEliminateId = playerId;
+            document.getElementById('eliminate-target-name').textContent = player.name;
+            
+            const confirmBtn = document.getElementById('btn-confirm-eliminate');
+            confirmBtn.onclick = () => executeEliminatePlayer(playerId);
+
+            const modal = document.getElementById('modal-eliminate-confirm');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeEliminateModal() {
+            const modal = document.getElementById('modal-eliminate-confirm');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            gameState.pendingEliminateId = null;
+        }
+
+        function executeEliminatePlayer(playerId) {
+            closeEliminateModal();
+            const player = gameState.activePlayers.find(p => p.id === playerId);
+            if (!player) return;
+
+            player.isEliminated = true;
+            renderDiscussionPlayers();
+
+            // Cek apakah permainan langsung berakhir atau lanjut ronde berikutnya
+            const gameEnded = checkWinCondition(player);
+            if (!gameEnded) {
+                showEliminationResultModal(player);
+            }
+        }
+
+        function showEliminationResultModal(eliminatedPlayer) {
+            const modal = document.getElementById('modal-elimination-result');
+            const card = document.getElementById('elim-result-card');
+            const iconBox = document.getElementById('elim-result-icon-box');
+            const icon = document.getElementById('elim-result-icon');
+            const badge = document.getElementById('elim-result-badge');
+            const nameEl = document.getElementById('elim-result-name');
+            const roleText = document.getElementById('elim-result-role-text');
+            const descEl = document.getElementById('elim-result-desc');
+
+            const isSpy = eliminatedPlayer.role === 'spy';
+            const remainingSpies = gameState.activePlayers.filter(p => !p.isEliminated && p.role === 'spy').length;
+
+            nameEl.textContent = eliminatedPlayer.name;
+
+            if (isSpy) {
+                card.className = "bg-navy-900 border-2 border-emerald-500 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl screen-fade";
+                iconBox.className = "w-20 h-20 mx-auto rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-emerald-400 mb-4";
+                icon.className = "ph-fill ph-detective text-4xl";
+                badge.className = "inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 mb-2";
+                badge.textContent = "TEPAT SASARAN!";
+                roleText.className = "text-base font-extrabold text-emerald-400 mb-3";
+                roleText.textContent = "Dia adalah SPY! 🕵️";
+                descEl.textContent = `Kerja bagus! Namun masih tersisa ${remainingSpies} Spy lagi yang bersembunyi. Lanjutkan diskusi untuk menangkap sisanya!`;
+            } else {
+                card.className = "bg-navy-900 border-2 border-crimson-500 rounded-3xl max-w-sm w-full p-6 text-center shadow-2xl screen-fade";
+                iconBox.className = "w-20 h-20 mx-auto rounded-full bg-crimson-500/20 border-2 border-crimson-400 flex items-center justify-center text-crimson-400 mb-4";
+                icon.className = "ph-fill ph-user text-4xl";
+                badge.className = "inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-crimson-500/20 text-crimson-400 mb-2";
+                badge.textContent = "SALAH SASARAN!";
+                roleText.className = "text-base font-extrabold text-crimson-400 mb-3";
+                roleText.textContent = "Dia adalah WARGA! 👤";
+                descEl.textContent = `Warga yang tidak bersalah telah tereliminasi! Spy masih berkeliaran di antara kalian. Hati-hati di ronde berikutnya!`;
+            }
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function continueToNextRound() {
+            const modal = document.getElementById('modal-elimination-result');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+
+            switchScreen('screen-discussion');
+            resetTimer();
+            pickRandomSpeaker();
+            renderDiscussionPlayers();
+            showToast("Ronde diskusi berikutnya dimulai!", "info");
+        }
+
+        function restorePlayer(playerId) {
+            const player = gameState.activePlayers.find(p => p.id === playerId);
+            if (player) {
+                player.isEliminated = false;
+                renderDiscussionPlayers();
+            }
+        }
+
+        function checkWinCondition(lastEliminatedPlayer = null) {
+            const alivePlayers = gameState.activePlayers.filter(p => !p.isEliminated);
+            const aliveSpies = alivePlayers.filter(p => p.role === 'spy');
+            const aliveCivilians = alivePlayers.filter(p => p.role === 'civilian');
+
+            if (aliveSpies.length === 0) {
+                // Semua Spy tereliminasi -> Warga Menang!
+                pauseTimer();
+                showGameOverModal('civilian', lastEliminatedPlayer);
+                return true;
+            } else if (aliveSpies.length >= aliveCivilians.length) {
+                // Jumlah Spy menyamai atau melebihi Warga tersisa -> Spy Menang!
+                pauseTimer();
+                showGameOverModal('spy', lastEliminatedPlayer);
+                return true;
+            }
+            return false;
+        }
+
+        function showGameOverModal(winner, lastEliminatedPlayer = null) {
+            const modal = document.getElementById('modal-gameover');
+            const card = document.getElementById('gameover-card');
+            const iconBox = document.getElementById('gameover-icon-box');
+            const icon = document.getElementById('gameover-icon');
+            const badge = document.getElementById('gameover-badge');
+            const title = document.getElementById('gameover-title');
+            const subtitle = document.getElementById('gameover-subtitle');
+
+            const elimNote = lastEliminatedPlayer 
+                ? `(${lastEliminatedPlayer.name} tereliminasi sebagai ${lastEliminatedPlayer.role === 'spy' ? 'Spy' : 'Warga'}). `
+                : "";
+
+            if (winner === 'civilian') {
+                card.className = "bg-navy-900 border-2 border-emerald-500 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl screen-fade";
+                iconBox.className = "w-20 h-20 mx-auto rounded-full bg-emerald-500/20 border-2 border-emerald-400 flex items-center justify-center text-emerald-400 mb-4";
+                icon.className = "ph-fill ph-shield-check text-4xl";
+                badge.className = "inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-emerald-500/20 text-emerald-400 mb-2";
+                badge.textContent = "MISI BERHASIL";
+                title.textContent = "Warga Menang! 🎉";
+                subtitle.textContent = `${elimNote}Semua mata-mata berhasil diidentifikasi dan dieliminasi dari kelompok.`;
+            } else {
+                card.className = "bg-navy-900 border-2 border-crimson-500 rounded-3xl max-w-md w-full p-6 text-center shadow-2xl screen-fade";
+                iconBox.className = "w-20 h-20 mx-auto rounded-full bg-crimson-500/20 border-2 border-crimson-400 flex items-center justify-center text-crimson-400 mb-4";
+                icon.className = "ph-fill ph-detective text-4xl";
+                badge.className = "inline-block px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider bg-crimson-500/20 text-crimson-400 mb-2";
+                badge.textContent = "PENYAMARAN SUKSES";
+                title.textContent = "Spy Menang! 🕵️";
+                subtitle.textContent = `${elimNote}Para mata-mata berhasil menyamar hingga jumlah mereka menguasai kelompok.`;
+            }
+
+            document.getElementById('go-civilian-word').textContent = gameState.civilianWord;
+            document.getElementById('go-spy-word').textContent = gameState.spyWord;
+
+            const spyList = document.getElementById('go-spy-list');
+            spyList.innerHTML = "";
+            gameState.activePlayers.filter(p => p.role === 'spy').forEach(s => {
+                const tag = document.createElement('span');
+                tag.className = "px-2.5 py-1 rounded-lg bg-crimson-500/20 border border-crimson-500/40 text-crimson-300 text-xs font-bold";
+                tag.textContent = s.name;
+                spyList.appendChild(tag);
+            });
+
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeGameOverModal() {
+            const modal = document.getElementById('modal-gameover');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+            switchScreen('screen-discussion');
+            renderDiscussionPlayers();
+        }
+
+        // ---------------------------------------------------------------------
+        // 6B. SISTEM VOTING BERGILIR (PASS & PLAY VOTING)
+        // ---------------------------------------------------------------------
+        function startTurnBasedVoting(tieCandidateIds = null) {
+            const alivePlayers = gameState.activePlayers.filter(p => !p.isEliminated);
+            if (alivePlayers.length < 3) {
+                showToast("Pemain tersisa terlalu sedikit untuk melakukan voting.", "warning");
+                return;
+            }
+
+            pauseTimer();
+
+            gameState.voting = {
+                voters: [...alivePlayers],
+                currentVoterIndex: 0,
+                selectedCandidateId: null,
+                votes: [],
+                tieCandidateIds: tieCandidateIds // Jika tidak null, hanya kandidat seri yang bisa dipilih
+            };
+
+            switchScreen('screen-voting');
+            setupCurrentVoterHandoff();
+        }
+
+        function cancelVotingToDiscussion() {
+            switchScreen('screen-discussion');
+            renderDiscussionPlayers();
+        }
+
+        function setupCurrentVoterHandoff() {
+            const { voters, currentVoterIndex, tieCandidateIds } = gameState.voting;
+            const totalVoters = voters.length;
+            const currentVoter = voters[currentVoterIndex];
+
+            // Tampilkan progress bar & sub-tampilan handoff
+            document.getElementById('voting-progress-wrapper').classList.remove('hidden');
+            document.getElementById('voting-handoff-card').classList.remove('hidden');
+            document.getElementById('voting-booth-card').classList.add('hidden');
+            document.getElementById('voting-results-card').classList.add('hidden');
+
+            document.getElementById('voting-phase-label').textContent = tieCandidateIds 
+                ? "VOTING ULANG (SERI)" 
+                : "VOTING BERGILIR";
+            document.getElementById('voting-progress-text').textContent = `Pemilih ${currentVoterIndex + 1} / ${totalVoters}`;
+            document.getElementById('voting-progress-bar').style.width = `${((currentVoterIndex + 1) / totalVoters) * 100}%`;
+
+            document.getElementById('voter-handoff-name').textContent = currentVoter.name;
+        }
+
+        function openVotingBooth() {
+            const { voters, currentVoterIndex, tieCandidateIds } = gameState.voting;
+            const currentVoter = voters[currentVoterIndex];
+            gameState.voting.selectedCandidateId = null;
+
+            // Pindah ke sub-tampilan bilik suara
+            document.getElementById('voting-handoff-card').classList.add('hidden');
+            document.getElementById('voting-booth-card').classList.remove('hidden');
+
+            document.getElementById('booth-voter-name').textContent = currentVoter.name;
+
+            const btnConfirm = document.getElementById('btn-confirm-vote');
+            btnConfirm.disabled = true;
+            document.getElementById('btn-confirm-vote-text').textContent = "Pilih Tersangka Dahulu";
+
+            // Tentukan daftar kandidat yang boleh dipilih (semua pemain aktif selain pemilih sendiri)
+            const alivePlayers = gameState.activePlayers.filter(p => !p.isEliminated);
+            let candidates = alivePlayers.filter(p => p.id !== currentVoter.id);
+
+            // Jika sedang voting ulang hasil seri, filter khusus kandidat yang seri
+            // (Catatan: jika pemilih adalah salah satu kandidat seri, dia memilih kandidat seri lainnya)
+            if (tieCandidateIds && tieCandidateIds.length > 1) {
+                const filteredTie = candidates.filter(p => tieCandidateIds.includes(p.id));
+                if (filteredTie.length > 0) {
+                    candidates = filteredTie;
+                }
+                document.getElementById('booth-instruction-text').innerHTML = 
+                    `Terjadi <strong class="text-amber-400">Hasil Seri!</strong> Pilih salah satu dari kandidat seri di bawah ini:`;
+            } else {
+                document.getElementById('booth-instruction-text').innerHTML = 
+                    `Siapa yang menurutmu adalah <strong class="text-rose-400">Spy</strong>? Ketuk nama di bawah ini untuk memilih:`;
+            }
+
+            renderVotingCandidates(candidates);
+        }
+
+        function renderVotingCandidates(candidates) {
+            const container = document.getElementById('voting-candidates-list');
+            container.innerHTML = "";
+
+            candidates.forEach(candidate => {
+                const isSelected = gameState.voting.selectedCandidateId === candidate.id;
+                const btn = document.createElement('button');
+                btn.type = "button";
+                btn.onclick = () => selectVoteCandidate(candidate.id, candidate.name, candidates);
+                
+                btn.className = isSelected
+                    ? "w-full p-3.5 rounded-2xl bg-rose-500/20 border-2 border-rose-500 flex items-center justify-between text-left transition shadow-lg shadow-rose-500/10"
+                    : "w-full p-3.5 rounded-2xl bg-navy-950 hover:bg-navy-800 border border-slate-800 flex items-center justify-between text-left transition";
+
+                btn.innerHTML = `
+                    <div class="flex items-center gap-3">
+                        <div class="w-9 h-9 rounded-xl ${isSelected ? 'bg-rose-500 text-white' : 'bg-navy-800 text-slate-300'} font-bold text-sm flex items-center justify-center transition">
+                            ${escapeHtml(candidate.name.charAt(0).toUpperCase())}
+                        </div>
+                        <span class="font-bold text-sm sm:text-base ${isSelected ? 'text-white' : 'text-slate-200'}">
+                            ${escapeHtml(candidate.name)}
+                        </span>
+                    </div>
+                    <div class="w-6 h-6 rounded-full border-2 ${isSelected ? 'border-rose-400 bg-rose-500 text-white' : 'border-slate-600'} flex items-center justify-center">
+                        ${isSelected ? '<i class="ph-bold ph-check text-xs"></i>' : ''}
+                    </div>
+                `;
+                container.appendChild(btn);
+            });
+        }
+
+        function selectVoteCandidate(candidateId, candidateName, candidates) {
+            gameState.voting.selectedCandidateId = candidateId;
+            renderVotingCandidates(candidates);
+
+            const btnConfirm = document.getElementById('btn-confirm-vote');
+            btnConfirm.disabled = false;
+            document.getElementById('btn-confirm-vote-text').textContent = `Konfirmasi Pilihan: ${candidateName}`;
+        }
+
+        function submitCurrentVote() {
+            const { voters, currentVoterIndex, selectedCandidateId } = gameState.voting;
+            if (selectedCandidateId === null) return;
+
+            const currentVoter = voters[currentVoterIndex];
+            const targetPlayer = gameState.activePlayers.find(p => p.id === selectedCandidateId);
+
+            // Simpan suara
+            gameState.voting.votes.push({
+                voterId: currentVoter.id,
+                voterName: currentVoter.name,
+                targetId: targetPlayer.id,
+                targetName: targetPlayer.name
+            });
+
+            // Lanjut ke pemilih berikutnya atau tampilkan rekap hasil
+            gameState.voting.currentVoterIndex++;
+            if (gameState.voting.currentVoterIndex < voters.length) {
+                setupCurrentVoterHandoff();
+            } else {
+                showVotingResults();
+            }
+        }
+
+        function showVotingResults() {
+            document.getElementById('voting-progress-wrapper').classList.add('hidden');
+            document.getElementById('voting-handoff-card').classList.add('hidden');
+            document.getElementById('voting-booth-card').classList.add('hidden');
+            document.getElementById('voting-results-card').classList.remove('hidden');
+
+            const alivePlayers = gameState.activePlayers.filter(p => !p.isEliminated);
+            const totalVotes = gameState.voting.votes.length;
+
+            // Hitung perolehan suara masing-masing pemain aktif
+            const tallyMap = new Map();
+            alivePlayers.forEach(p => {
+                tallyMap.set(p.id, {
+                    player: p,
+                    count: 0,
+                    voters: []
+                });
+            });
+
+            gameState.voting.votes.forEach(v => {
+                if (tallyMap.has(v.targetId)) {
+                    const entry = tallyMap.get(v.targetId);
+                    entry.count++;
+                    entry.voters.push(v.voterName);
+                }
+            });
+
+            // Urutkan dari suara terbanyak ke tersedikit
+            const sortedResults = Array.from(tallyMap.values()).sort((a, b) => b.count - a.count);
+            const highestVoteCount = sortedResults.length > 0 ? sortedResults[0].count : 0;
+            const topCandidates = sortedResults.filter(r => r.count === highestVoteCount && highestVoteCount > 0);
+
+            // Render visual bar & badge perolehan suara
+            const tallyContainer = document.getElementById('voting-tally-list');
+            tallyContainer.innerHTML = "";
+
+            sortedResults.forEach(item => {
+                const isTop = item.count === highestVoteCount && highestVoteCount > 0;
+                const pct = totalVotes > 0 ? Math.round((item.count / totalVotes) * 100) : 0;
+
+                const row = document.createElement('div');
+                row.className = isTop
+                    ? "p-3.5 rounded-2xl bg-rose-500/10 border border-rose-500/40 space-y-2"
+                    : "p-3.5 rounded-2xl bg-navy-950 border border-slate-800 space-y-2";
+
+                const votersBadgeHtml = item.voters.length > 0
+                    ? `<div class="flex flex-wrap gap-1 pt-1">
+                        <span class="text-[11px] text-slate-400 mr-1">Dipilih oleh:</span>
+                        ${item.voters.map(vName => `<span class="text-[10px] font-semibold px-2 py-0.5 rounded-md bg-navy-800 text-slate-300 border border-slate-700">${escapeHtml(vName)}</span>`).join('')}
+                       </div>`
+                    : `<p class="text-[11px] text-slate-500 italic">0 suara</p>`;
+
+                row.innerHTML = `
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center gap-2.5">
+                            <span class="font-bold text-sm sm:text-base ${isTop ? 'text-white' : 'text-slate-300'}">
+                                ${escapeHtml(item.player.name)}
+                            </span>
+                            ${isTop ? '<span class="text-[10px] font-extrabold px-2 py-0.5 rounded-full bg-rose-500 text-white uppercase">Terbanyak</span>' : ''}
+                        </div>
+                        <span class="font-mono font-extrabold text-sm ${isTop ? 'text-rose-400' : 'text-slate-400'}">
+                            ${item.count} Suara (${pct}%)
+                        </span>
+                    </div>
+                    <div class="w-full h-2 bg-navy-900 rounded-full overflow-hidden">
+                        <div class="h-full ${isTop ? 'bg-rose-500' : 'bg-slate-600'} transition-all duration-500" style="width: ${pct}%"></div>
+                    </div>
+                    ${votersBadgeHtml}
+                `;
+                tallyContainer.appendChild(row);
+            });
+
+            // Render Kotak Keputusan (Tunggal vs Seri)
+            const decisionBox = document.getElementById('voting-decision-box');
+            decisionBox.innerHTML = "";
+
+            if (topCandidates.length === 1) {
+                // Ada 1 pemain dengan suara terbanyak -> Tampilkan tombol Eliminasi [Nama Pemain]
+                const target = topCandidates[0].player;
+                decisionBox.innerHTML = `
+                    <div class="p-3.5 rounded-2xl bg-navy-950 border border-slate-800 text-center space-y-3">
+                        <p class="text-xs text-slate-300">
+                            Berdasarkan hasil voting, <strong class="text-rose-400">${escapeHtml(target.name)}</strong> mendapat suara terbanyak untuk dieliminasi.
+                        </p>
+                        <button 
+                            onclick="executeVoteElimination(${target.id})"
+                            class="w-full py-4 px-5 rounded-2xl bg-gradient-to-r from-crimson-600 to-rose-500 hover:from-crimson-500 hover:to-rose-400 active:scale-95 text-white font-extrabold text-base shadow-xl shadow-crimson-600/20 transition flex items-center justify-center gap-2"
+                        >
+                            <i class="ph-fill ph-gavel text-xl"></i>
+                            <span>Eliminasi ${escapeHtml(target.name)}</span>
+                        </button>
+                    </div>
+                `;
+            } else {
+                // Terjadi Hasil Seri (Tie) -> Tampilkan peringatan & opsi Voting Ulang atau Serahkan ke Wasit
+                const tiedNames = topCandidates.map(c => c.player.name).join(", ");
+                const tiedIds = JSON.stringify(topCandidates.map(c => c.player.id));
+
+                decisionBox.innerHTML = `
+                    <div class="p-4 rounded-2xl bg-amber-500/10 border border-amber-500/40 space-y-3">
+                        <div class="flex items-start gap-2.5">
+                            <i class="ph-fill ph-warning text-amber-400 text-xl shrink-0 mt-0.5"></i>
+                            <div>
+                                <h4 class="font-extrabold text-sm text-amber-300">Hasil Seri!</h4>
+                                <p class="text-xs text-amber-100/90 mt-0.5 leading-relaxed">
+                                    Suara terbanyak imbang antara: <strong>${escapeHtml(tiedNames)}</strong> (${highestVoteCount} suara).
+                                </p>
+                            </div>
+                        </div>
+                        <div class="grid grid-cols-1 gap-2.5 pt-1">
+                            <button 
+                                onclick='startTurnBasedVoting(${tiedIds})'
+                                class="w-full py-3.5 px-4 rounded-xl bg-amber-500 hover:bg-amber-400 text-navy-950 font-extrabold text-xs sm:text-sm transition flex items-center justify-center gap-2 shadow-lg shadow-amber-500/10"
+                            >
+                                <i class="ph-bold ph-arrows-clockwise text-base"></i>
+                                <span>Voting Ulang (Khusus Kandidat Seri)</span>
+                            </button>
+                            <button 
+                                onclick="cancelVotingToDiscussion()"
+                                class="w-full py-3 px-4 rounded-xl bg-navy-800 hover:bg-slate-700 text-slate-200 font-bold text-xs sm:text-sm border border-slate-700 transition flex items-center justify-center gap-2"
+                            >
+                                <i class="ph-bold ph-shield-warning text-base text-gold-400"></i>
+                                <span>Serahkan Keputusan ke Wasit</span>
+                            </button>
+                        </div>
+                    </div>
+                `;
+            }
+        }
+
+        function executeVoteElimination(playerId) {
+            const player = gameState.activePlayers.find(p => p.id === playerId);
+            if (!player) return;
+
+            player.isEliminated = true;
+
+            // Cek apakah permainan selesai (Warga Menang / Spy Menang) atau lanjut ronde berikutnya
+            const gameEnded = checkWinCondition(player);
+            if (!gameEnded) {
+                showEliminationResultModal(player);
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // 7. PANEL WASIT (KONFIRMASI & TOGGLE)
+        // ---------------------------------------------------------------------
+        function requestRefereeAccess() {
+            const panel = document.getElementById('referee-secret-panel');
+            if (!panel.classList.contains('hidden')) {
+                // Tutup kembali panel wasit
+                panel.classList.add('hidden');
+                document.getElementById('btn-referee-label').textContent = "Buka Panel";
+                return;
+            }
+
+            // Tampilkan modal konfirmasi wasit
+            const modal = document.getElementById('modal-referee-confirm');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeRefereeModal() {
+            const modal = document.getElementById('modal-referee-confirm');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function confirmOpenReferee() {
+            closeRefereeModal();
+            gameState.refereeUnlocked = true;
+            document.getElementById('referee-secret-panel').classList.remove('hidden');
+            document.getElementById('btn-referee-label').textContent = "Tutup Panel";
+        }
+
+        // ---------------------------------------------------------------------
+        // 8. TIMER DISKUSI
+        // ---------------------------------------------------------------------
+        function setTimerDuration(seconds) {
+            pauseTimer();
+            gameState.timerDefault = seconds;
+            gameState.timerSeconds = seconds;
+            updateTimerDisplay();
+        }
+
+        function toggleTimer() {
+            if (gameState.isTimerRunning) {
+                pauseTimer();
+            } else {
+                startTimer();
+            }
+        }
+
+        function startTimer() {
+            if (gameState.timerSeconds <= 0) {
+                gameState.timerSeconds = gameState.timerDefault;
+            }
+            gameState.isTimerRunning = true;
+            document.getElementById('icon-timer-toggle').className = "ph-fill ph-pause text-base";
+            document.getElementById('text-timer-toggle').textContent = "Jeda";
+
+            gameState.timerInterval = setInterval(() => {
+                gameState.timerSeconds--;
+                updateTimerDisplay();
+
+                if (gameState.timerSeconds <= 0) {
+                    pauseTimer();
+                    showToast("Waktu diskusi habis! Saatnya melakukan voting!", "warning");
+                }
+            }, 1000);
+        }
+
+        function pauseTimer() {
+            gameState.isTimerRunning = false;
+            clearInterval(gameState.timerInterval);
+            document.getElementById('icon-timer-toggle').className = "ph-fill ph-play text-base";
+            document.getElementById('text-timer-toggle').textContent = "Mulai";
+        }
+
+        function resetTimer() {
+            pauseTimer();
+            gameState.timerSeconds = gameState.timerDefault;
+            updateTimerDisplay();
+        }
+
+        function updateTimerDisplay() {
+            const mins = Math.floor(gameState.timerSeconds / 60);
+            const secs = gameState.timerSeconds % 60;
+            const formatted = `${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+            const display = document.getElementById('timer-display');
+            display.textContent = formatted;
+
+            if (gameState.timerSeconds <= 15 && gameState.timerSeconds > 0) {
+                display.className = "font-mono text-3xl sm:text-4xl font-extrabold text-crimson-500 tracking-wider pl-2 animate-pulse";
+            } else {
+                display.className = "font-mono text-3xl sm:text-4xl font-extrabold text-white tracking-wider pl-2";
+            }
+        }
+
+        // ---------------------------------------------------------------------
+        // 9. NAVIGASI & UTILITAS
+        // ---------------------------------------------------------------------
+        function switchScreen(screenId) {
+            ['screen-setup', 'screen-pass', 'screen-discussion', 'screen-voting'].forEach(id => {
+                document.getElementById(id).classList.add('hidden');
+            });
+            document.getElementById(screenId).classList.remove('hidden');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function playAgainSamePlayers() {
+            pauseTimer();
+            startGame();
+        }
+
+        function resetToSetup() {
+            pauseTimer();
+            switchScreen('screen-setup');
+        }
+
+        function openRulesModal() {
+            const modal = document.getElementById('modal-rules');
+            modal.classList.remove('hidden');
+            modal.classList.add('flex');
+        }
+
+        function closeRulesModal() {
+            const modal = document.getElementById('modal-rules');
+            modal.classList.add('hidden');
+            modal.classList.remove('flex');
+        }
+
+        function showToast(message, type = "info") {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            
+            let colors = "bg-navy-800 border-slate-700 text-white";
+            let icon = "ph-info text-cyan-400";
+
+            if (type === "error") {
+                colors = "bg-red-950/95 border-crimson-500/60 text-red-100";
+                icon = "ph-warning-circle text-crimson-400";
+            } else if (type === "warning") {
+                colors = "bg-amber-950/95 border-amber-500/60 text-amber-100";
+                icon = "ph-warning text-amber-400";
+            } else if (type === "success") {
+                colors = "bg-emerald-950/95 border-emerald-500/60 text-emerald-100";
+                icon = "ph-check-circle text-emerald-400";
+            }
+
+            toast.className = `pointer-events-auto flex items-center gap-2.5 px-4 py-3 rounded-2xl border shadow-2xl backdrop-blur-md text-xs sm:text-sm font-semibold screen-fade ${colors}`;
+            toast.innerHTML = `<i class="ph-fill ${icon} text-lg shrink-0"></i><span>${escapeHtml(message)}</span>`;
+
+            container.appendChild(toast);
+            setTimeout(() => {
+                toast.style.opacity = "0";
+                toast.style.transform = "translateY(-8px)";
+                toast.style.transition = "all 0.3s ease";
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function shuffleArray(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+        }
+
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+    </script>
+</body>
+</html>
